@@ -16,14 +16,14 @@ spec:
       containers:
         - name: mysql
           image: mysql:8.1.0
-          volumeMounts:
-            - name: mysql-data
-              mountPath: /var/lib/mysql/
           env:
             - name: MYSQL_DATABASE
               value: cnssdb
-            - name: MYSQL_ALLOW_EMPTY_PASSWORD
-              value: "yes"
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: root-password
           ports:
             - containerPort: 3306
           resources:
@@ -33,6 +33,9 @@ spec:
             requests:
               cpu: 50m
               memory: 256Mi
+          volumeMounts:
+            - name: mysql-data
+              mountPath: /var/lib/mysql
       volumes:
         - name: mysql-data
           persistentVolumeClaim:
