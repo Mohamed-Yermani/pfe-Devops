@@ -37,3 +37,6 @@ spec:
               port: 80
             initialDelaySeconds: 5
             periodSeconds: 5
+          env:
+            - name: BACKEND_URL
+              value: "http://192.168.33.12:30001"
