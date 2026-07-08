@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cnss-back
+  namespace: cnss
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cnss-back
+  template:
+    metadata:
+      labels:
+        app: cnss-back
+    spec:
+      imagePullSecrets:
+        - name:  dockerhub-pull-secret
+      restartPolicy: Always
+      containers:
+        - name: cnss-back
+          image: yermanimohamed/cnss_backend:1.0.2 
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/cnssdb?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true"
+            - name: spring.datasource.username
+              value: root
+            - name: spring.datasource.password
+              value: root
+            - name: spring.jpa.hibernate.ddl-auto
+              value: update
+            - name: FILES_FOLDER
+              value: /shared/UploadedFiles
+          envFrom:
+          - configMapRef:
+              name: spring-boot-config
+          ports:
+            - containerPort: 8094
+          resources:
+            limits:
+              cpu: 100m
+              memory: 1Gi
+            requests:
+              cpu: 50m
+              memory: 512Mi
+          volumeMounts:
+            - name: shared-volume
+              mountPath: /shared/UploadedFiles
+      volumes:
+        - name: shared-volume
+          persistentVolumeClaim:
+            claimName: cnss-uploadedfiles-pvc
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spring-boot-config
+data:
+  application.properties: |
+    spring.datasource.url=jdbc:mysql://mysql:3306/cnssdb?useUnicode=true&characterEncoding=utf8&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+    spring.datasource.username=root
+    spring.datasource.password=root
+    spring.jpa.hibernate.ddl-auto=update
